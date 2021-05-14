@@ -20,9 +20,6 @@ class Bottle:
     def __str__(self):
         return str(self.container)
 
-    # def begin(self,dataList):
-    #     self.container = dataList
-
     def length(self):
         return len(self.container)
 
@@ -32,6 +29,7 @@ class Bottle:
         subContainer = []
         num = len(self.container)
         deep = num
+        i = 0
         while True:
             if deep == 0:
                 break
@@ -46,6 +44,9 @@ class Bottle:
                 else:
                     self.container.append(topOne)
                     break
+            i += 1
+            if i == count:
+                break
         return subContainer
 
     def takeItIn(self, subContainer):
