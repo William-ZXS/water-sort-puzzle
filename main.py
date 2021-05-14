@@ -1,6 +1,5 @@
-
 import random
-
+import copy
 
 """
 颜色用 a、b、c来表示
@@ -9,14 +8,18 @@ import random
 """
 
 
-class Bottle():
+class Bottle:
     """
     例如：data=[a,b,c,d]
     """
 
-    def __int__(self, data):
+    def __init__(self, data):
         self.size = 4
         self.container = data
+        self.success = False
+
+    def __str__(self):
+        return str(self.container)
 
     # def begin(self,dataList):
     #     self.container = dataList
@@ -24,7 +27,7 @@ class Bottle():
     def length(self):
         return len(self.container)
 
-    def getOut(self):
+    def getOut(self, count=0):
         # 可以拿出来的情况
         outType = ""
         subContainer = []
@@ -44,22 +47,26 @@ class Bottle():
                 else:
                     self.container.append(topOne)
                     break
+        return subContainer
 
     def takeItIn(self, subContainer):
         # 可以放进来的情况
         self.container.extend(subContainer)
 
     def checkSuccess(self):
+        # 校验瓶子是否已经是满格同色
         if self.length() != self.size:
+            self.success = False
             return False
-        else:
-            item = ""
-            for x in self.container:
-                if item == "":
-                    item = x
-                if x != item:
-                    return False
-            return True
+        topOne = ""
+        for item in self.container:
+            if topOne == "":
+                topOne = item
+            if item != topOne:
+                self.success = False
+                return False
+        self.success = True
+        return True
 
 
 """
@@ -73,17 +80,81 @@ class Bottle():
 第二步，实现穹举实现，然后记录下所有的步骤。
 """
 
+"""
+尝试倒
+"""
 
-def playGame(bottleList):
-    bottle1 = Bottle(["a", "b", "c", "d"])
-    bottle2 = Bottle(["a", "b", "c", "d"])
-    bottle3 = Bottle(["a", "b", "c", "d"])
-    bottle4 = Bottle(["a", "b", "c", "d"])
-    bottle5 = Bottle()
-    bottle6 = Bottle()
+
+def tryPour(bottleOut, bottleIn):
+    """
+
+    :param bottleOut: 尝试倒出去
+    :param bottleIn:  尝试倒进来
+    :return:
+    """
+    bottleOut = Bottle(["a", "b", "c", "d"])
+    bottleIn = Bottle(["a", "b", "c", "d"])
+
+    # 校验bottleIn是否已经
+
+    # bottleOut 是否是空瓶
+    if bottleOut.length() == 0:
+        return False
+    # bottleIn 是否是满瓶
+    if bottleIn.length() == bottleIn.size:
+        return False
+    # 倒进去的瓶子是空的
+    if bottleIn.length() == 0:
+        bottleOut.getOut()
+        return True
+    # 颜色不一致  不可以
+    if bottleOut[-1] != bottleIn[-1]:
+        return False
+    # =============可以倒进来一部分的情况
+    # bottleIn
+    lackCount = bottleIn.size - bottleOut.length()
+
+    # subContainer = ["a","b"...]
+    subContainer = bottleOut.getOut(lackCount)
+    bottleIn.takeItIn(subContainer)
+
+
+def playGame(bottleList=[]):
+    bottle1 = Bottle(["c", "c", "d", "d"])
+    bottle2 = Bottle(["c", "c", "d", "d"])
+    bottle3 = Bottle(["b", "b", "b", "b"])
+    # bottle3 = Bottle([])
+    bottle4 = Bottle(["a", "a", "a", "a"])
+    bottle5 = Bottle([])
+    bottle6 = Bottle([])
     bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6]
-    index = random.randint(0, len(bottleList) - 1)
-    bottleList
+
+    i = 0
+    while True:
+        bottleList_left = []
+
+        for item in bottleList:
+            if not item.checkSuccess():
+                print("bottleList_left====",item)
+                bottleList_left.append(item)
+
+
+
+        if len(bottleList_left) == 2 and bottleList_left[0].length() == 0 and bottleList_left[0].length() == 0:
+            break
+        indexRM = random.randint(0, len(bottleList_left) - 1)
+        bottleOut = bottleList_left[indexRM]
+        bottleList_left.pop(indexRM)
+        indexRM2 = random.randint(0, len(bottleList_left) - 1)
+        bottleIn = bottleList_left[indexRM2]
+
+        tryPour(bottleOut, bottleIn)
+        i += 1
+    #     print("i===", i)
+    #     print("bottleList====", bottleList)
+    #
+    # print("====bottleList=====", bottleList)
+
 
 if __name__ == '__main__':
-    pass
+    playGame()
