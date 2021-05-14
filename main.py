@@ -120,13 +120,14 @@ def tryPour(bottleOut, bottleIn):
 
 
 def playGame(bottleList=[]):
-    bottle1 = Bottle(["red", "red", "blue", "blue"])
-    bottle2 = Bottle(["red", "red", "blue", "blue"])
-    bottle3 = Bottle(["black", "black", "pink", "pink"])
-    bottle4 = Bottle(["pink", "pink", "black", "black"])
-    bottle5 = Bottle([])
-    bottle6 = Bottle([])
-    bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6]
+    if bottleList == []:
+        bottle1 = Bottle(["a", "d", "b", "b"])
+        bottle2 = Bottle(["a", "a", "b", "b"])
+        bottle3 = Bottle(["c", "c", "d", "d"])
+        bottle4 = Bottle(["d", "a", "c", "c"])
+        bottle5 = Bottle([])
+        bottle6 = Bottle([])
+        bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6]
     print("开始状态：")
     for x in bottleList:
         print("  ", x, end="")
@@ -150,14 +151,30 @@ def playGame(bottleList=[]):
         # print("==res==:", res)
 
         i += 1
+        if i == 100000:
+            print(" ")
+            print("已经执行：%d 步" %(i,))
+            break
     print(" ")
     print("游戏结束")
-    print("总执行步骤:",i)
+    print("总执行步骤:", i)
     print("结果如下:")
     for x in bottleList:
-        print("  ",x,end="")
-
+        print("  ", x, end="")
 
 
 if __name__ == '__main__':
-    playGame()
+    bottle1 = Bottle(["a", "b", "c", "d"])
+    bottle2 = Bottle(["e", "d", "f", "a"])
+    bottle3 = Bottle(["a", "g", "b", "h"])
+    bottle4 = Bottle(["c", "h", "h", "e"])
+    bottle5 = Bottle(["g", "i", "i", "c"])
+    bottle6 = Bottle(["a", "h", "f", "b"])
+    bottle7 = Bottle(["b", "i", "d", "e"])
+    bottle8 = Bottle(["g", "f", "i", "f"])
+    bottle9 = Bottle(["c", "e", "g", "d"])
+    bottle10 = Bottle([])
+    bottle11 = Bottle([])
+
+    bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11]
+    playGame(bottleList)
