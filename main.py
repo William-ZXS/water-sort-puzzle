@@ -153,7 +153,7 @@ def playGame(bottleList=[]):
         i += 1
         if i == 100000:
             print(" ")
-            print("已经执行：%d 步" %(i,))
+            print("已经执行：%d 步" % (i,))
             break
     print(" ")
     print("游戏结束")
@@ -164,17 +164,31 @@ def playGame(bottleList=[]):
 
 
 if __name__ == '__main__':
-    bottle1 = Bottle(["a", "b", "c", "d"])
-    bottle2 = Bottle(["e", "d", "f", "a"])
-    bottle3 = Bottle(["a", "g", "b", "h"])
-    bottle4 = Bottle(["c", "h", "h", "e"])
-    bottle5 = Bottle(["g", "i", "i", "c"])
-    bottle6 = Bottle(["a", "h", "f", "b"])
-    bottle7 = Bottle(["b", "i", "d", "e"])
-    bottle8 = Bottle(["g", "f", "i", "f"])
-    bottle9 = Bottle(["c", "e", "g", "d"])
-    bottle10 = Bottle([])
-    bottle11 = Bottle([])
+    # bottle1 = Bottle(["a", "b", "c", "d"])
+    # bottle2 = Bottle(["e", "d", "f", "a"])
+    # bottle3 = Bottle(["a", "g", "b", "h"])
+    # bottle4 = Bottle(["c", "h", "h", "e"])
+    # bottle5 = Bottle(["g", "i", "i", "c"])
+    # bottle6 = Bottle(["a", "h", "f", "b"])
+    # bottle7 = Bottle(["b", "i", "d", "e"])
+    # bottle8 = Bottle(["g", "f", "i", "f"])
+    # bottle9 = Bottle(["c", "e", "g", "d"])
+    bottle1 = Bottle(["a", "b", "c", "b"])
+    bottle2 = Bottle(["c", "e", "f", "a"])
+    bottle3 = Bottle(["g", "a", "c", "h"])
+    bottle4 = Bottle(["j", "g", "h", "i"])
+    bottle5 = Bottle(["c", "h", "i", "a"])
+    bottle6 = Bottle(["f", "i", "k", "f"])
+    bottle7 = Bottle(["d", "g", "k", "l"])
 
-    bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11]
+    bottle8 = Bottle(["d", "l", "l", "j"])
+    bottle9 = Bottle(["h", "l", "k", "e"])
+    bottle10 = Bottle(["e", "d", "d", "j"])
+    bottle11 = Bottle(["k", "j", "i", "g"])
+    bottle12 = Bottle(["f", "b", "b", "e"])
+    bottle13 = Bottle([])
+    bottle14 = Bottle([])
+
+    bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11,
+                  bottle12, bottle13, bottle14]
     playGame(bottleList)
