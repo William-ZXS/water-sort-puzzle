@@ -148,9 +148,10 @@ def tryPour(bottleOut, bottleIn):
         return False
     # 倒进去的瓶子是空的
     if bottleIn.length() == 0:
-        bottleOutCopy = copy.deepcopy(bottleOut)
+        outLength = bottleOut.length()
         subContainer = bottleOut.getOut()
-        if len(subContainer) == bottleOutCopy.length():
+        if len(subContainer) == outLength:
+            bottleOut.takeItIn(subContainer)
             return False
         bottleIn.takeItIn(subContainer)
         return True
@@ -187,6 +188,8 @@ def playGame(bottleList=[]):
 
     i = 0
     m = 0
+    with open("train.txt", "a") as f:
+        f.write("\n\n")
     while True:
         bottleList_left = []
 
@@ -194,19 +197,19 @@ def playGame(bottleList=[]):
             if not item.checkSuccess():
                 bottleList_left.append(item)
 
-        bottleList_left_print = copy.deepcopy(bottleList_left)
+        bottleList_left_copy = copy.deepcopy(bottleList_left)
 
         if len(bottleList_left) == 2 and bottleList_left[0].length() == 0 and bottleList_left[0].length() == 0:
-            print()
-            print("===bottleList_left_print====")
-            scoreList = []
-            for bott in bottleList:
-                print(bott, end=" ")
-                score = bott.computeScore()
-                scoreList.append(score)
-            scoreList.sort(reverse=True)
-            with open("train.txt", "a") as f:
-                f.write(str(sum(scoreList)) + "   " + str(scoreList) + "\n")
+            # print()
+            # print("===bottleList_left_print====")
+            # scoreList = []
+            # for bott in bottleList:
+            #     print(bott, end=" ")
+            #     score = bott.computeScore()
+            #     scoreList.append(score)
+            # scoreList.sort(reverse=True)
+            # with open("train.txt", "a") as f:
+            #     f.write(str(sum(scoreList)) + "   " + str(scoreList) + "\n")
             break
         indexRM = random.randint(0, len(bottleList_left) - 1)
         bottleOut = bottleList_left[indexRM]
@@ -233,9 +236,9 @@ def playGame(bottleList=[]):
                 score = bott.computeScore()
                 scoreList.append(score)
             scoreList.sort(reverse=True)
-            print(" ")
-            print("score sum: ", sum(scoreList))
-            print("score list: ", scoreList)
+            # print(" ")
+            # print("score sum: ", sum(scoreList))
+            # print("score list: ", scoreList)
 
             with open("train.txt", "a") as f:
                 f.write(str(sum(scoreList))+ "   " + str(scoreList) + "\n")
