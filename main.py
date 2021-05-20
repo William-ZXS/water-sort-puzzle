@@ -1,4 +1,5 @@
 import random
+import copy
 
 """
 颜色用 a、b、c来表示
@@ -11,6 +12,10 @@ class Bottle:
     """
     例如：data=[a,b,c,d]
     """
+    FIRST_SCORE = 8
+    SECOND_SCORE = 4
+    THIRD_SCORE = 2
+    FORTH_SCORE = 1
 
     def __init__(self, data):
         self.size = 4
@@ -67,6 +72,46 @@ class Bottle:
                 return False
         self.success = True
         return True
+    # 计算得分
+    def computeScore(self):
+        colorList = self.container
+        if len(colorList) == 0:
+            return 0
+        if len(colorList) == 1:
+            return Bottle.FIRST_SCORE
+        if len(colorList) == 2:
+            if colorList[0] == colorList[1]:
+                return (Bottle.FIRST_SCORE + Bottle.SECOND_SCORE) * 2
+            else:
+                return Bottle.FIRST_SCORE + Bottle.SECOND_SCORE
+
+        if len(colorList) == 3:
+            if colorList[0] == colorList[1] == colorList[2]:
+                return (Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + Bottle.THIRD_SCORE) * 3
+            elif colorList[0] == colorList[1]:
+                return (Bottle.FIRST_SCORE + Bottle.SECOND_SCORE) * 2 + Bottle.THIRD_SCORE
+            elif colorList[1] == colorList[2]:
+                return Bottle.FIRST_SCORE + (Bottle.SECOND_SCORE + Bottle.THIRD_SCORE) * 2
+            else:
+                return Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + Bottle.THIRD_SCORE
+
+        if len(colorList) == 4:
+            if colorList[0] == colorList[1] == colorList[2] == colorList[3]:
+                return (Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + Bottle.THIRD_SCORE + Bottle.FORTH_SCORE) * 4
+            # 三个相同
+            elif colorList[0] == colorList[1] == colorList[2]:
+                return (Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + Bottle.THIRD_SCORE) * 3 + Bottle.FORTH_SCORE
+            elif colorList[1] == colorList[2] == colorList[3]:
+                return Bottle.FIRST_SCORE + (Bottle.SECOND_SCORE + Bottle.THIRD_SCORE + Bottle.FORTH_SCORE) * 3
+            # 两个相同
+            elif colorList[0] == colorList[1]:
+                return (Bottle.FIRST_SCORE + Bottle.SECOND_SCORE) * 2 + Bottle.THIRD_SCORE + Bottle.FORTH_SCORE
+            elif colorList[1] == colorList[2]:
+                return Bottle.FIRST_SCORE + (Bottle.SECOND_SCORE + Bottle.THIRD_SCORE) * 2 + Bottle.FORTH_SCORE
+            elif colorList[2] == colorList[3]:
+                return Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + (Bottle.THIRD_SCORE + Bottle.FORTH_SCORE) * 2
+            else:
+                return Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + Bottle.THIRD_SCORE + Bottle.FORTH_SCORE
 
 
 """
@@ -103,7 +148,10 @@ def tryPour(bottleOut, bottleIn):
         return False
     # 倒进去的瓶子是空的
     if bottleIn.length() == 0:
+        bottleOutCopy = copy.deepcopy(bottleOut)
         subContainer = bottleOut.getOut()
+        if len(subContainer) == bottleOutCopy.length():
+            return False
         bottleIn.takeItIn(subContainer)
         return True
     # 颜色不一致  不可以
@@ -111,12 +159,17 @@ def tryPour(bottleOut, bottleIn):
         return False
     # =============可以倒进来一部分的情况
     # bottleIn
-    lackCount = bottleIn.size - bottleOut.length()
+    lackCount = bottleIn.size - bottleIn.length()
 
     # subContainer = ["a","b"...]
     subContainer = bottleOut.getOut(lackCount)
     bottleIn.takeItIn(subContainer)
     return True
+
+
+
+
+
 
 
 def playGame(bottleList=[]):
@@ -133,6 +186,7 @@ def playGame(bottleList=[]):
         print("  ", x, end="")
 
     i = 0
+    m = 0
     while True:
         bottleList_left = []
 
@@ -140,20 +194,57 @@ def playGame(bottleList=[]):
             if not item.checkSuccess():
                 bottleList_left.append(item)
 
+        bottleList_left_print = copy.deepcopy(bottleList_left)
+
         if len(bottleList_left) == 2 and bottleList_left[0].length() == 0 and bottleList_left[0].length() == 0:
+            print()
+            print("===bottleList_left_print====")
+            scoreList = []
+            for bott in bottleList:
+                print(bott, end=" ")
+                score = bott.computeScore()
+                scoreList.append(score)
+            scoreList.sort(reverse=True)
+            with open("train.txt", "a") as f:
+                f.write(str(sum(scoreList)) + "   " + str(scoreList) + "\n")
             break
         indexRM = random.randint(0, len(bottleList_left) - 1)
         bottleOut = bottleList_left[indexRM]
         bottleList_left.pop(indexRM)
         indexRM2 = random.randint(0, len(bottleList_left) - 1)
         bottleIn = bottleList_left[indexRM2]
-        res = tryPour(bottleOut, bottleIn)
-        # print("==res==:", res)
 
-        i += 1
-        if i == 100000:
+        bottleOutOri = copy.deepcopy(bottleOut)
+        bottleInOri = copy.deepcopy(bottleIn)
+        res = tryPour(bottleOut, bottleIn)
+
+        if res:
+
+            i += 1
+
             print(" ")
             print("已经执行：%d 步" % (i,))
+
+            print("  ")
+            print("===bottleList_left_print====")
+            scoreList = []
+            for bott in bottleList:
+                print(bott, end=" ")
+                score = bott.computeScore()
+                scoreList.append(score)
+            scoreList.sort(reverse=True)
+            print(" ")
+            print("score sum: ", sum(scoreList))
+            print("score list: ", scoreList)
+
+            with open("train.txt", "a") as f:
+                f.write(str(sum(scoreList))+ "   " + str(scoreList) + "\n")
+
+
+        m += 1
+        if m == 100000:
+            print(" ")
+            print("死循环")
             break
     print(" ")
     print("游戏结束")
@@ -173,22 +264,24 @@ if __name__ == '__main__':
     # bottle7 = Bottle(["b", "i", "d", "e"])
     # bottle8 = Bottle(["g", "f", "i", "f"])
     # bottle9 = Bottle(["c", "e", "g", "d"])
-    bottle1 = Bottle(["a", "b", "c", "b"])
-    bottle2 = Bottle(["c", "e", "f", "a"])
-    bottle3 = Bottle(["g", "a", "c", "h"])
-    bottle4 = Bottle(["j", "g", "h", "i"])
-    bottle5 = Bottle(["c", "h", "i", "a"])
-    bottle6 = Bottle(["f", "i", "k", "f"])
-    bottle7 = Bottle(["d", "g", "k", "l"])
 
-    bottle8 = Bottle(["d", "l", "l", "j"])
-    bottle9 = Bottle(["h", "l", "k", "e"])
-    bottle10 = Bottle(["e", "d", "d", "j"])
-    bottle11 = Bottle(["k", "j", "i", "g"])
-    bottle12 = Bottle(["f", "b", "b", "e"])
-    bottle13 = Bottle([])
-    bottle14 = Bottle([])
-
-    bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11,
-                  bottle12, bottle13, bottle14]
-    playGame(bottleList)
+    # bottle1 = Bottle(["a", "b", "c", "b"])
+    # bottle2 = Bottle(["c", "e", "f", "a"])
+    # bottle3 = Bottle(["g", "a", "c", "h"])
+    # bottle4 = Bottle(["j", "g", "h", "i"])
+    # bottle5 = Bottle(["c", "h", "i", "a"])
+    # bottle6 = Bottle(["f", "i", "k", "f"])
+    # bottle7 = Bottle(["d", "g", "k", "l"])
+    #
+    # bottle8 = Bottle(["d", "l", "l", "j"])
+    # bottle9 = Bottle(["h", "l", "k", "e"])
+    # bottle10 = Bottle(["e", "d", "d", "j"])
+    # bottle11 = Bottle(["k", "j", "i", "g"])
+    # bottle12 = Bottle(["f", "b", "b", "e"])
+    # bottle13 = Bottle([])
+    # bottle14 = Bottle([])
+    #
+    # bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11,
+    #               bottle12, bottle13, bottle14]
+    # playGame(bottleList)
+    playGame()
