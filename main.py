@@ -1,11 +1,16 @@
 import random
 import copy
+import numpy as np
+import redis
+import math
+import json
 
 """
 颜色用 a、b、c来表示
 位置用0，1，2，3来表示
 
 """
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 
 class Bottle:
@@ -72,6 +77,7 @@ class Bottle:
                 return False
         self.success = True
         return True
+
     # 计算得分
     def computeScore(self):
         colorList = self.container
@@ -112,6 +118,14 @@ class Bottle:
                 return Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + (Bottle.THIRD_SCORE + Bottle.FORTH_SCORE) * 2
             else:
                 return Bottle.FIRST_SCORE + Bottle.SECOND_SCORE + Bottle.THIRD_SCORE + Bottle.FORTH_SCORE
+
+    def isSameColor(self):
+        if self.length() == 0:
+            return True
+        for item in self.container:
+            if item != self.container[0]:
+                return False
+        return True
 
 
 """
@@ -168,9 +182,23 @@ def tryPour(bottleOut, bottleIn):
     return True
 
 
+def isPourAble(bottleOut, bottleIn):
+    # bottleOut 是否是空瓶
+    if bottleOut.length() == 0:
+        return False
+    # bottleIn 是否是满瓶
+    if bottleIn.length() == bottleIn.size:
+        return False
+    # 倒进去的瓶子是空的
+    if bottleIn.length() == 0:
+        if bottleOut.isSameColor():
+            return False
+        return True
+    # 颜色不一致  不可以
+    if bottleOut.container[-1] != bottleIn.container[-1]:
+        return False
 
-
-
+    return True
 
 
 def playGame(bottleList=[]):
@@ -185,42 +213,41 @@ def playGame(bottleList=[]):
     print("开始状态：")
     for x in bottleList:
         print("  ", x, end="")
-
     i = 0
     m = 0
     with open("train.txt", "a") as f:
         f.write("\n\n")
+    recordData = {}
+    parentName = ""
     while True:
+
+        # 检查状态
         bottleList_left = []
 
         for item in bottleList:
             if not item.checkSuccess():
                 bottleList_left.append(item)
+        bottleList_left_deepcopy = copy.deepcopy(bottleList_left)
 
-        bottleList_left_copy = copy.deepcopy(bottleList_left)
-
-        if len(bottleList_left) == 2 and bottleList_left[0].length() == 0 and bottleList_left[0].length() == 0:
-            # print()
-            # print("===bottleList_left_print====")
-            # scoreList = []
-            # for bott in bottleList:
-            #     print(bott, end=" ")
-            #     score = bott.computeScore()
-            #     scoreList.append(score)
-            # scoreList.sort(reverse=True)
-            # with open("train.txt", "a") as f:
-            #     f.write(str(sum(scoreList)) + "   " + str(scoreList) + "\n")
+        if len(bottleList_left) == 2 and bottleList_left[0].length() == 0 and bottleList_left[1].length() == 0:
             break
-        indexRM = random.randint(0, len(bottleList_left) - 1)
-        bottleOut = bottleList_left[indexRM]
-        bottleList_left.pop(indexRM)
-        indexRM2 = random.randint(0, len(bottleList_left) - 1)
-        bottleIn = bottleList_left[indexRM2]
 
-        bottleOutOri = copy.deepcopy(bottleOut)
-        bottleInOri = copy.deepcopy(bottleIn)
+        # 挑选出 倒出和倒入的瓶子
+        # indexOut = random.randint(0, len(bottleList_left) - 1)
+        indexList = random.sample(range(0, len(bottleList_left)), 2)
+        outIndex = indexList[0]
+        inIndex = indexList[1]
+
+        bottleOut = bottleList_left[outIndex]
+        # bottleList_left.pop(indexOut)
+        # indexIn = random.randint(0, len(bottleList_left) - 1)
+        bottleIn = bottleList_left[inIndex]
+        # 判断是否可以到
+
         res = tryPour(bottleOut, bottleIn)
-
+        print("outIndex==", outIndex, " inIndex==", inIndex)
+        print([b.container for b in bottleList_left])
+        print(res)
         if res:
 
             i += 1
@@ -231,23 +258,39 @@ def playGame(bottleList=[]):
             print("  ")
             print("===bottleList_left_print====")
             scoreList = []
-            for bott in bottleList:
+            dataList = []
+            for bott in bottleList_left_deepcopy:
                 print(bott, end=" ")
                 score = bott.computeScore()
+                if score == 60:
+                    continue
                 scoreList.append(score)
-            scoreList.sort(reverse=True)
-            # print(" ")
-            # print("score sum: ", sum(scoreList))
-            # print("score list: ", scoreList)
+                dataList.append(bott.container)
 
-            with open("train.txt", "a") as f:
-                f.write(str(sum(scoreList))+ "   " + str(scoreList) + "\n")
+            std = math.ceil(np.std(scoreList) * 1000000)
+            name = str(len(scoreList)) + "-" + str(std)
 
+            if parentName != "":
+                recordData[parentName]["sonName"] = name
+
+            data = {}
+            data["outIndex"] = outIndex
+            data["inIndex"] = inIndex
+            data["bottleList"] = [bottle.container for bottle in bottleList_left_deepcopy]
+            r.hset(name, "outIndex", outIndex)
+            r.hset(name, "inIndex", inIndex)
+            recordData[name] = data
+            parentName = name
+            # with open("train.txt", "a") as f:
+            #     f.write(str(np.std(scoreList)) + "  " + str(sum(scoreList)) + "   " + str(scoreList) + "   " + str(
+            #         dataList) + "\n")
+            # f.write(str(np.var(scoreList)) + "  " + str(sum(scoreList)) + "   " + str(scoreList) + "\n")
 
         m += 1
         if m == 100000:
             print(" ")
             print("死循环")
+            recordData = {}
             break
     print(" ")
     print("游戏结束")
@@ -255,6 +298,9 @@ def playGame(bottleList=[]):
     print("结果如下:")
     for x in bottleList:
         print("  ", x, end="")
+    with open("train.txt", "a") as f:
+        jsonData = json.dumps(recordData)
+        f.write(jsonData)
 
 
 if __name__ == '__main__':
@@ -267,6 +313,10 @@ if __name__ == '__main__':
     # bottle7 = Bottle(["b", "i", "d", "e"])
     # bottle8 = Bottle(["g", "f", "i", "f"])
     # bottle9 = Bottle(["c", "e", "g", "d"])
+    # bottle10 = Bottle([])
+    # bottle11 = Bottle([])
+    # bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11]
+    # playGame(bottleList)
 
     # bottle1 = Bottle(["a", "b", "c", "b"])
     # bottle2 = Bottle(["c", "e", "f", "a"])
@@ -287,4 +337,5 @@ if __name__ == '__main__':
     # bottleList = [bottle1, bottle2, bottle3, bottle4, bottle5, bottle6, bottle7, bottle8, bottle9, bottle10, bottle11,
     #               bottle12, bottle13, bottle14]
     # playGame(bottleList)
+
     playGame()
